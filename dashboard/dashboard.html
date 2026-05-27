@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taskly Dashboard</title>
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <main class="dashboard-shell">
+      <header class="dashboard-header">
+        <div>
+          <h1>Taskly</h1>
+          <p>Kelola task, catatan, dan link yang kamu tangkap dari browser.</p>
+        </div>
+        <div class="header-actions">
+          <button id="themeToggle" type="button" aria-label="Aktifkan dark mode">
+            Dark
+          </button>
+          <button id="exportMarkdownButton" type="button">Export MD</button>
+          <button id="exportCsvButton" type="button">Export CSV</button>
+          <button id="exportPdfButton" type="button">Export PDF</button>
+          <button id="exportJsonButton" type="button">Export JSON</button>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="Filter task">
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Cari task, domain, catatan, atau URL..."
+        />
+        <select
+          id="statusFilter"
+          aria-label="Filter berdasarkan status"
+          title="Filter berdasarkan status"
+        >
+          <option value="all">Semua status</option>
+          <option value="todo">To Do</option>
+          <option value="progress">On Progress</option>
+          <option value="done">Done</option>
+        </select>
+        <select
+          id="priorityFilter"
+          aria-label="Filter berdasarkan prioritas"
+          title="Filter berdasarkan prioritas"
+        >
+          <option value="all">Semua prioritas</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select
+          id="domainFilter"
+          aria-label="Filter berdasarkan domain"
+          title="Filter berdasarkan domain"
+        >
+          <option value="all">Semua domain</option>
+        </select>
+      </section>
+
+      <section class="content-grid">
+        <section class="task-panel" aria-labelledby="taskListTitle">
+          <div class="panel-head">
+            <h2 id="taskListTitle">Task</h2>
+            <span id="resultCount">0 item</span>
+          </div>
+          <div id="dashboardTaskList" class="dashboard-task-list"></div>
+        </section>
+
+        <aside class="detail-panel" aria-labelledby="detailTitle">
+          <h2 id="detailTitle">Detail</h2>
+          <form id="detailForm" class="detail-form">
+            <input id="taskIdInput" type="hidden" />
+
+            <label class="field">
+              <span>Judul</span>
+              <input
+                id="detailTitleInput"
+                type="text"
+                maxlength="120"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Catatan</span>
+              <textarea id="detailNotesInput" rows="5"></textarea>
+            </label>
+
+            <div class="form-grid">
+              <label class="field">
+                <span>Status</span>
+                <select id="detailStatusInput">
+                  <option value="todo">To Do</option>
+                  <option value="progress">On Progress</option>
+                  <option value="done">Done</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Prioritas</span>
+                <select id="detailPriorityInput">
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Deadline</span>
+              <input id="detailDueDateInput" type="date" />
+            </label>
+
+            <label class="field">
+              <span>Tags</span>
+              <input
+                id="detailTagsInput"
+                type="text"
+                placeholder="study, follow up, idea"
+              />
+            </label>
+
+            <div class="source-box">
+              <span>Source</span>
+              <a id="sourceLink" href="#" target="_blank" rel="noreferrer"
+                >Tidak ada source</a
+              >
+              <p id="selectedTextPreview"></p>
+            </div>
+
+            <div class="detail-actions">
+              <button class="primary-button" type="submit">Simpan</button>
+              <button id="markDoneButton" type="button">Done</button>
+              <button
+                id="deleteDetailButton"
+                class="danger-button"
+                type="button"
+              >
+                Hapus
+              </button>
+            </div>
+
+            <p id="detailMessage" class="message" role="status"></p>
+          </form>
+        </aside>
+      </section>
+    </main>
+
+    <template id="dashboardTaskTemplate">
+      <article class="dashboard-task-item" tabindex="0">
+        <div>
+          <h3></h3>
+          <p class="task-meta"></p>
+        </div>
+        <span class="status-pill"></span>
+      </article>
+    </template>
+
+    <script src="../scripts/rnotes-utils.js"></script>
+    <script src="../scripts/rnotes-store.js"></script>
+    <script src="../scripts/rnotes-export.js"></script>
+    <script src="../scripts/rnotes-pdf-export.js"></script>
+    <script src="../scripts/theme.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
