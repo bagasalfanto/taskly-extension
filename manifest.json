@@ -13,13 +13,13 @@
     "<all_urls>"
   ],
   "icons": {
-    "16": "favicon.svg",
-    "32": "favicon.svg",
-    "48": "favicon.svg",
-    "128": "favicon.svg"
+    "16": "assets/favicon.svg",
+    "32": "assets/favicon.svg",
+    "48": "assets/favicon.svg",
+    "128": "assets/favicon.svg"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "scripts/background.js"
   },
   "content_scripts": [
     {
@@ -28,7 +28,7 @@
         "https://*/*"
       ],
       "js": [
-        "content.js"
+        "scripts/content.js"
       ],
       "run_at": "document_idle"
     }
@@ -36,12 +36,12 @@
   "action": {
     "default_title": "Taskly",
     "default_icon": {
-      "16": "favicon.svg",
-      "32": "favicon.svg",
-      "48": "favicon.svg",
-      "128": "favicon.svg"
+      "16": "assets/favicon.svg",
+      "32": "assets/favicon.svg",
+      "48": "assets/favicon.svg",
+      "128": "assets/favicon.svg"
     },
-    "default_popup": "popup.html"
+    "default_popup": "popup/popup.html"
   },
-  "options_page": "dashboard.html"
+  "options_page": "dashboard/dashboard.html"
 }

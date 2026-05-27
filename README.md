@@ -31,6 +31,32 @@ Masuk direktori
 cd taskly-extension
 ```
 
+Pastikan file `manifest.json` ada di folder utama project. Folder utama yang berisi `manifest.json` inilah yang dipilih saat instalasi extension di browser.
+
+Struktur folder utama:
+
+```text
+taskly-extension/
+|-- assets/
+|   `-- favicon.svg
+|-- dashboard/
+|   |-- dashboard.html
+|   |-- dashboard.css
+|   `-- dashboard.js
+|-- popup/
+|   |-- popup.html
+|   |-- popup.css
+|   `-- popup.js
+|-- scripts/
+|   |-- background.js
+|   |-- content.js
+|   |-- rnotes-store.js
+|   |-- rnotes-utils.js
+|   `-- file JavaScript pendukung lainnya
+|-- manifest.json
+`-- README.md
+```
+
 ### 3. Install di Google Chrome
 
 1. Buka Google Chrome.
@@ -137,6 +163,10 @@ Browser yang bisa digunakan:
 - Brave.
 - Vivaldi.
 - Opera.
+
+## License
+
+Project ini menggunakan MIT License. Detail lisensi tersedia di file `LICENSE`.
 
 ## Permission yang Digunakan
 
