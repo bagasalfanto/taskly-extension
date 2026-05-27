@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Taskly",
+  "description": "Menyimpan tugas, catatan, dan link langsung dari browser.",
+  "version": "0.1.0",
+  "permissions": [
+    "storage",
+    "tabs",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "favicon.svg",
+    "32": "favicon.svg",
+    "48": "favicon.svg",
+    "128": "favicon.svg"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Taskly",
+    "default_icon": {
+      "16": "favicon.svg",
+      "32": "favicon.svg",
+      "48": "favicon.svg",
+      "128": "favicon.svg"
+    },
+    "default_popup": "popup.html"
+  },
+  "options_page": "dashboard.html"
+}
