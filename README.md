@@ -4,7 +4,7 @@ Taskly adalah browser extension untuk menangkap task, catatan, teks terpilih, da
 
 Data Taskly disimpan secara lokal di browser menggunakan `chrome.storage.local`. Tidak ada server yang dibutuhkan untuk menjalankan extension ini.
 
-## Mulai dari Clone Project sampai Terpasang di Browser
+## Installasi Project
 
 Ikuti langkah ini jika ingin menjalankan Taskly dari source code.
 
