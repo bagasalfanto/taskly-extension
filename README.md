@@ -4,6 +4,72 @@ Taskly adalah browser extension untuk menangkap task, catatan, teks terpilih, da
 
 Data Taskly disimpan secara lokal di browser menggunakan `chrome.storage.local`. Tidak ada server yang dibutuhkan untuk menjalankan extension ini.
 
+## Mulai dari Clone Project sampai Terpasang di Browser
+
+Ikuti langkah ini jika ingin menjalankan Taskly dari source code.
+
+### 1. Requirement
+
+Pastikan sudah tersedia:
+
+- Git.
+- Browser berbasis Chromium, disarankan Google Chrome atau Microsoft Edge.
+
+Taskly tidak membutuhkan Node.js, `npm install`, database, atau server lokal.
+
+### 2. Instalasi
+
+Clone project
+
+```bash
+git clone https://github.com/bagasalfanto/taskly-extension.git
+```
+
+Masuk direktori
+
+```bash
+cd taskly-extension
+```
+
+### 3. Install di Google Chrome
+
+1. Buka Google Chrome.
+2. Ketik `chrome://extensions` di address bar, lalu tekan Enter.
+3. Aktifkan `Developer mode` di pojok kanan atas.
+4. Klik tombol `Load unpacked`.
+5. Pilih folder hasil clone, yaitu folder `taskly-extension` yang berisi file `manifest.json`.
+6. Klik `Select Folder`.
+7. Pastikan extension `Taskly` muncul di daftar extension.
+8. Klik icon puzzle di toolbar Chrome, lalu pin `Taskly` agar mudah dibuka.
+
+### 4. Install di Microsoft Edge
+
+1. Buka Microsoft Edge.
+2. Ketik `edge://extensions` di address bar, lalu tekan Enter.
+3. Aktifkan `Developer mode`.
+4. Klik tombol `Load unpacked`.
+5. Pilih folder hasil clone, yaitu folder `taskly-extension` yang berisi file `manifest.json`.
+6. Klik `Select Folder`.
+7. Pastikan extension `Taskly` muncul di daftar extension.
+8. Pin `Taskly` ke toolbar jika ingin akses cepat.
+
+### 5. Coba jalankan Taskly
+
+1. Buka halaman website apa pun, misalnya artikel atau halaman tugas.
+2. Klik icon `Taskly` di toolbar browser.
+3. Isi atau sesuaikan data task jika diperlukan.
+4. Klik tombol simpan.
+5. Buka `Dashboard` dari popup Taskly untuk melihat dan mengelola task.
+
+### 6. Jika ada perubahan kode
+
+Setelah mengubah file extension, buka kembali halaman extension browser:
+
+- Chrome: `chrome://extensions`
+- Edge: `edge://extensions`
+
+Lalu klik tombol reload pada card `Taskly` agar perubahan terbaru aktif di browser.
+
 ## Fitur Utama
 
 - Menyimpan halaman aktif sebagai task.
@@ -60,24 +126,6 @@ Data Taskly disimpan secara lokal di browser menggunakan `chrome.storage.local`.
    - `Export JSON` untuk backup atau kebutuhan teknis.
 3. File export akan diunduh dengan nama `taskly-export`.
 
-## Instalasi di Google Chrome
-
-1. Buka `chrome://extensions`.
-2. Aktifkan `Developer mode`.
-3. Klik `Load unpacked`.
-4. Pilih folder `extension` dari project Taskly.
-5. Pastikan extension `Taskly` muncul di daftar extension.
-6. Pin icon Taskly ke toolbar jika ingin akses cepat.
-
-## Instalasi di Microsoft Edge
-
-1. Buka `edge://extensions`.
-2. Aktifkan `Developer mode`.
-3. Klik `Load unpacked`.
-4. Pilih folder `extension` dari project Taskly.
-5. Pastikan extension `Taskly` muncul di daftar extension.
-6. Pin icon Taskly ke toolbar jika ingin akses cepat.
-
 ## Browser yang Didukung
 
 Taskly menggunakan Manifest V3 dan API `chrome.*`, sehingga target utamanya adalah browser berbasis Chromium.
@@ -89,13 +137,6 @@ Browser yang bisa digunakan:
 - Brave.
 - Vivaldi.
 - Opera.
-
-Catatan dukungan:
-
-- Chrome dan Edge adalah target utama yang paling direkomendasikan.
-- Brave, Vivaldi, dan Opera umumnya bisa menjalankan extension Chromium melalui fitur `Load unpacked`, tetapi tetap perlu dites pada versi browser masing-masing.
-- Firefox belum menjadi target resmi karena implementasi Manifest V3 dan API extension bisa berbeda.
-- Safari belum didukung karena sistem extension dan proses packaging-nya berbeda.
 
 ## Permission yang Digunakan
 
