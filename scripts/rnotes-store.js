@@ -7,6 +7,7 @@
   const {
     STORAGE_KEY,
     LEGACY_STORAGE_KEY,
+    REMINDER_SYNC_MESSAGE,
     STATUS,
     PRIORITY,
     normalizeText,
@@ -20,6 +21,11 @@
     normalizePriority,
     normalizeStatus,
     normalizeTags,
+    normalizeDueDate,
+    normalizeDueTime,
+    getReminderAt,
+    formatDueLabel,
+    isTaskReminderOverdue,
     getStatusLabel
   } = utils;
 
@@ -65,6 +71,9 @@
     const selectedText = clampText(input.selectedText, 1200) || null;
     const pageTitle = cleanSavedTitle(input.pageTitle, rawUrl, { allowGenericSuffix: true }) || null;
     const usePageTitleAsTitle = input.usePageTitleAsTitle !== false;
+    const dueDate = normalizeDueDate(input.dueDate);
+    const dueTime = dueDate ? normalizeDueTime(input.dueTime) : null;
+    const reminderAt = getReminderAt(dueDate, dueTime);
     const title =
       cleanSavedTitle(input.title, rawUrl) ||
       (usePageTitleAsTitle ? pageTitle : "") ||
@@ -83,7 +92,10 @@
       status,
       priority: normalizePriority(input.priority),
       tags: normalizeTags(input.tags),
-      dueDate: input.dueDate || null,
+      dueDate,
+      dueTime,
+      reminderAt,
+      remindedAt: input.remindedAt || null,
       createdAt,
       updatedAt: createdAt,
       completedAt: status === STATUS.DONE ? createdAt : null
@@ -102,7 +114,7 @@
     const normalizedTasks = validTasks.map(normalizeTask);
     const shouldSave =
       !hasCurrentTasks ||
-      normalizedTasks.some((task, index) => task.status !== validTasks[index].status);
+      normalizedTasks.some((task, index) => needsNormalizationSave(task, validTasks[index]));
     const tasks = normalizedTasks.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 
     if (shouldSave && tasks.length) {
@@ -114,13 +126,31 @@
 
   function normalizeTask(task) {
     const status = normalizeStatus(task.status);
+    const dueDate = normalizeDueDate(task.dueDate);
+    const dueTime = dueDate ? normalizeDueTime(task.dueTime) : null;
+    const reminderAt = getReminderAt(dueDate, dueTime);
     return {
       ...task,
       status,
       priority: normalizePriority(task.priority),
       tags: normalizeTags(task.tags),
+      dueDate,
+      dueTime,
+      reminderAt,
+      remindedAt: task.remindedAt || null,
       completedAt: status === STATUS.DONE ? task.completedAt || task.updatedAt || task.createdAt || nowIso() : null
     };
+  }
+
+  function needsNormalizationSave(normalizedTask, rawTask) {
+    return (
+      normalizedTask.status !== rawTask.status ||
+      normalizedTask.priority !== rawTask.priority ||
+      normalizedTask.dueDate !== (rawTask.dueDate || null) ||
+      normalizedTask.dueTime !== (rawTask.dueTime || null) ||
+      normalizedTask.reminderAt !== (rawTask.reminderAt || null) ||
+      normalizedTask.remindedAt !== (rawTask.remindedAt || null)
+    );
   }
 
   async function saveTasks(tasks) {
@@ -139,16 +169,31 @@
     const tasks = await getTasks();
     let updatedTask = null;
     const hasDueDateChange = Object.prototype.hasOwnProperty.call(changes, "dueDate");
+    const hasDueTimeChange = Object.prototype.hasOwnProperty.call(changes, "dueTime");
+    const hasRemindedAtChange = Object.prototype.hasOwnProperty.call(changes, "remindedAt");
     const updatedTasks = tasks.map((task) => {
       if (task.id !== id) {
         return task;
       }
 
       const status = changes.status ? normalizeStatus(changes.status) : task.status;
+      const dueDate = hasDueDateChange ? normalizeDueDate(changes.dueDate) : task.dueDate || null;
+      const dueTime = dueDate
+        ? hasDueTimeChange
+          ? normalizeDueTime(changes.dueTime)
+          : task.dueTime || null
+        : null;
+      const reminderAt = getReminderAt(dueDate, dueTime);
+      const reminderChanged = reminderAt !== (task.reminderAt || null);
       const completedAt =
         status === STATUS.DONE
           ? task.completedAt || nowIso()
           : null;
+      const remindedAt = hasRemindedAtChange
+        ? changes.remindedAt || null
+        : reminderChanged
+          ? null
+          : task.remindedAt || null;
 
       updatedTask = {
         ...task,
@@ -158,7 +203,10 @@
         priority: normalizePriority(changes.priority ?? task.priority),
         status,
         tags: normalizeTags(changes.tags ?? task.tags),
-        dueDate: hasDueDateChange ? changes.dueDate || null : task.dueDate,
+        dueDate,
+        dueTime,
+        reminderAt,
+        remindedAt,
         updatedAt: nowIso(),
         completedAt
       };
@@ -184,6 +232,7 @@
   const api = {
     STORAGE_KEY,
     LEGACY_STORAGE_KEY,
+    REMINDER_SYNC_MESSAGE,
     STATUS,
     PRIORITY,
     normalizeText,
@@ -193,6 +242,11 @@
     cleanSavedTitle,
     titleFromUrl,
     normalizeStatus,
+    normalizeDueDate,
+    normalizeDueTime,
+    getReminderAt,
+    formatDueLabel,
+    isTaskReminderOverdue,
     getStatusLabel,
     createTask,
     getTasks,

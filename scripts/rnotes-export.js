@@ -12,27 +12,27 @@
       status: store.normalizeStatus(task.status)
     }));
     const groups = [
-      ["To Do", normalizedTasks.filter((task) => task.status === STATUS.TODO)],
-      ["On Progress", normalizedTasks.filter((task) => task.status === STATUS.PROGRESS)],
-      ["Done", normalizedTasks.filter((task) => task.status === STATUS.DONE)]
+      [t("statusTodo"), normalizedTasks.filter((task) => task.status === STATUS.TODO)],
+      [t("statusProgress"), normalizedTasks.filter((task) => task.status === STATUS.PROGRESS)],
+      [t("statusDone"), normalizedTasks.filter((task) => task.status === STATUS.DONE)]
     ];
 
-    const lines = ["# Taskly Export", ""];
+    const lines = [`# ${t("exportTitle")}`, ""];
     groups.forEach(([label, group]) => {
       lines.push(`## ${label}`, "");
       if (!group.length) {
-        lines.push("_Tidak ada task._", "");
+        lines.push(t("exportEmpty"), "");
         return;
       }
 
       group.forEach((task) => {
         const checked = task.status === STATUS.DONE ? "x" : " ";
         lines.push(`- [${checked}] ${task.title}`);
-        if (task.url) lines.push(`  - Source: ${task.url}`);
-        if (task.priority) lines.push(`  - Priority: ${task.priority}`);
-        if (task.dueDate) lines.push(`  - Due: ${task.dueDate}`);
-        if (task.tags && task.tags.length) lines.push(`  - Tags: ${task.tags.join(", ")}`);
-        if (task.completedAt) lines.push(`  - Completed: ${task.completedAt.slice(0, 10)}`);
+        if (task.url) lines.push(`  - ${t("labelSource")}: ${task.url}`);
+        if (task.priority) lines.push(`  - ${t("labelPriority")}: ${getPriorityLabel(task.priority)}`);
+        if (task.dueDate) lines.push(`  - ${t("exportDue")}: ${store.formatDueLabel(task)}`);
+        if (task.tags && task.tags.length) lines.push(`  - ${t("labelTags")}: ${task.tags.join(", ")}`);
+        if (task.completedAt) lines.push(`  - ${t("labelCompleted")}: ${task.completedAt.slice(0, 10)}`);
         lines.push("");
       });
     });
@@ -53,6 +53,9 @@
       ["priority", (task) => task.priority],
       ["tags", (task) => (task.tags || []).join("; ")],
       ["dueDate", (task) => task.dueDate],
+      ["dueTime", (task) => task.dueTime],
+      ["reminderAt", (task) => task.reminderAt],
+      ["remindedAt", (task) => task.remindedAt],
       ["createdAt", (task) => task.createdAt],
       ["updatedAt", (task) => task.updatedAt],
       ["completedAt", (task) => task.completedAt]
@@ -76,6 +79,19 @@
     }
 
     return text;
+  }
+
+  function t(key, params) {
+    return globalThis.TasklyI18n ? TasklyI18n.t(key, params) : key;
+  }
+
+  function getPriorityLabel(priority) {
+    const labels = {
+      low: "priorityLow",
+      medium: "priorityMedium",
+      high: "priorityHigh"
+    };
+    return t(labels[priority] || "priorityMedium");
   }
 
   Object.assign(store, {

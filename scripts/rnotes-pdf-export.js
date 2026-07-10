@@ -47,9 +47,9 @@
 
     addPage();
     drawSummary(tasks);
-    drawSection("To Do", todoTasks, STATUS.TODO);
-    drawSection("On Progress", progressTasks, STATUS.PROGRESS);
-    drawSection("Done", doneTasks, STATUS.DONE);
+    drawSection(t("statusTodo"), todoTasks, STATUS.TODO);
+    drawSection(t("statusProgress"), progressTasks, STATUS.PROGRESS);
+    drawSection(t("statusDone"), doneTasks, STATUS.DONE);
     pages.forEach((item, index) => drawFooter(item, index + 1, pages.length));
 
     return pages;
@@ -58,11 +58,11 @@
       page = { ops: [] };
       pages.push(page);
       drawRect(0, PAGE_HEIGHT - HEADER_HEIGHT, PAGE_WIDTH, HEADER_HEIGHT, colors.ink);
-      drawText(MARGIN, PAGE_HEIGHT - 36, "Taskly Export", 22, "F2", colors.white);
+      drawText(MARGIN, PAGE_HEIGHT - 36, t("exportTitle"), 22, "F2", colors.white);
       drawText(
         MARGIN,
         PAGE_HEIGHT - 57,
-        `Generated ${formatPdfDateTime(new Date())}`,
+        t("exportGenerated", { value: formatPdfDateTime(new Date()) }),
         9,
         "F1",
         [213, 220, 228]
@@ -88,11 +88,11 @@
       ensureSpace(84);
       const dueTasks = allTasks.filter((task) => task.dueDate && task.status !== STATUS.DONE);
       const items = [
-        ["Total", allTasks.length, colors.blue],
-        ["To Do", todoTasks.length, colors.amber],
-        ["Progress", progressTasks.length, colors.violet],
-        ["Done", doneTasks.length, colors.green],
-        ["Due", dueTasks.length, colors.red]
+        [t("exportTotal"), allTasks.length, colors.blue],
+        [t("statusTodo"), todoTasks.length, colors.amber],
+        [t("exportProgress"), progressTasks.length, colors.violet],
+        [t("statusDone"), doneTasks.length, colors.green],
+        [t("exportDue"), dueTasks.length, colors.red]
       ];
       const gap = 8;
       const width = (CONTENT_WIDTH - gap * (items.length - 1)) / items.length;
@@ -118,7 +118,7 @@
       if (!sectionTasks.length) {
         ensureSpace(36);
         drawRect(MARGIN, y - 28, CONTENT_WIDTH, 28, [252, 253, 254], colors.border);
-        drawText(MARGIN + 12, y - 18, "Tidak ada task.", 10, "F1", colors.muted);
+        drawText(MARGIN + 12, y - 18, t("exportNoTask"), 10, "F1", colors.muted);
         y -= 44;
         return;
       }
@@ -154,7 +154,7 @@
 
       if (layout.notesLines.length) {
         textY -= 3;
-        drawText(MARGIN + 14, textY, "Catatan", 8.5, "F2", colors.ink);
+        drawText(MARGIN + 14, textY, t("labelNotes"), 8.5, "F2", colors.ink);
         textY -= 11;
         layout.notesLines.forEach((line) => {
           drawText(MARGIN + 14, textY, line, 9, "F1", sectionStatus === STATUS.DONE ? colors.muted : colors.ink);
@@ -164,7 +164,7 @@
 
       if (layout.sourceLines.length) {
         textY -= 3;
-        drawText(MARGIN + 14, textY, "Source", 8.5, "F2", colors.ink);
+        drawText(MARGIN + 14, textY, t("labelSource"), 8.5, "F2", colors.ink);
         textY -= 11;
         layout.sourceLines.forEach((line) => {
           drawText(MARGIN + 14, textY, line, 8.5, "F1", colors.blue);
@@ -174,7 +174,7 @@
 
       if (layout.selectedLines.length) {
         textY -= 3;
-        drawText(MARGIN + 14, textY, "Kutipan", 8.5, "F2", colors.ink);
+        drawText(MARGIN + 14, textY, t("labelQuote"), 8.5, "F2", colors.ink);
         textY -= 11;
         layout.selectedLines.forEach((line) => {
           drawText(MARGIN + 14, textY, line, 8.5, "F1", colors.muted);
@@ -211,10 +211,10 @@
     function getPdfMeta(task) {
       const parts = [];
       if (task.domain) parts.push(task.domain);
-      if (task.priority) parts.push(`Priority: ${task.priority}`);
-      if (task.dueDate) parts.push(`Due: ${formatPdfDate(task.dueDate)}`);
-      if (task.tags && task.tags.length) parts.push(`Tags: ${task.tags.join(", ")}`);
-      if (task.completedAt) parts.push(`Completed: ${formatPdfDate(task.completedAt)}`);
+      if (task.priority) parts.push(`${t("labelPriority")}: ${getPriorityLabel(task.priority)}`);
+      if (task.dueDate) parts.push(`${t("exportDue")}: ${store.formatDueLabel(task)}`);
+      if (task.tags && task.tags.length) parts.push(`${t("labelTags")}: ${task.tags.join(", ")}`);
+      if (task.completedAt) parts.push(`${t("labelCompleted")}: ${formatPdfDate(task.completedAt)}`);
       return parts.join(" | ");
     }
 
@@ -256,7 +256,7 @@
       drawText(
         PAGE_WIDTH - MARGIN - 70,
         18,
-        `Page ${current} / ${total}`,
+        t("exportPage", { current, total }),
         8,
         "F1",
         colors.muted,
@@ -441,6 +441,19 @@
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return "";
     return date.toISOString().slice(0, 19).replace("T", " ");
+  }
+
+  function t(key, params) {
+    return globalThis.TasklyI18n ? TasklyI18n.t(key, params) : key;
+  }
+
+  function getPriorityLabel(priority) {
+    const labels = {
+      low: "priorityLow",
+      medium: "priorityMedium",
+      high: "priorityHigh"
+    };
+    return t(labels[priority] || "priorityMedium");
   }
 
   function rgb(color) {

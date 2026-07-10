@@ -49,15 +49,15 @@
     if (!toggle) return;
 
     const isDark = theme === DARK;
-    toggle.textContent = isDark ? "Light" : "Dark";
+    toggle.textContent = isDark ? getText("light", "Light") : getText("dark", "Dark");
     toggle.dataset.themeState = theme;
     toggle.setAttribute(
       "aria-label",
-      isDark ? "Aktifkan light mode" : "Aktifkan dark mode"
+      isDark ? getText("activateLight", "Aktifkan light mode") : getText("activateDark", "Aktifkan dark mode")
     );
     toggle.setAttribute(
       "title",
-      isDark ? "Aktifkan light mode" : "Aktifkan dark mode"
+      isDark ? getText("activateLight", "Aktifkan light mode") : getText("activateDark", "Aktifkan dark mode")
     );
   }
 
@@ -96,5 +96,15 @@
         applyTheme(event.matches ? DARK : LIGHT);
       }
     });
+  }
+
+  globalThis.TasklyTheme = {
+    refresh() {
+      updateToggle(root.getAttribute("data-theme") || getPreferredTheme());
+    }
+  };
+
+  function getText(key, fallback) {
+    return globalThis.TasklyI18n ? TasklyI18n.t(key) : fallback;
   }
 })();

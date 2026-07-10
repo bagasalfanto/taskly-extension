@@ -1,30 +1,62 @@
-importScripts("rnotes-utils.js", "rnotes-store.js", "rnotes-export.js", "rnotes-pdf-export.js");
+importScripts(
+  "rnotes-utils.js",
+  "taskly-i18n.js",
+  "rnotes-store.js",
+  "rnotes-export.js",
+  "rnotes-pdf-export.js",
+  "taskly-reminders.js"
+);
 
 const MENU_SELECTED_TEXT = "taskly-add-selected-text";
 const MENU_LINK = "taskly-add-link";
 const MENU_PAGE = "taskly-add-page";
 const MESSAGE_GET_CONTEXT_MENU_CAPTURE = "TASKLY_GET_CONTEXT_MENU_CAPTURE";
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: MENU_SELECTED_TEXT,
-      title: "Tambahkan teks ke Taskly",
-      contexts: ["selection"]
+chrome.runtime.onInstalled.addListener(async () => {
+  await createContextMenus();
+  await runReminderJob(() => TasklyReminders.syncReminders({ notifyMissed: false }));
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  await createContextMenus();
+  await runReminderJob(() => TasklyReminders.syncReminders({ notifyMissed: false }));
+});
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  await runReminderJob(() => TasklyReminders.handleAlarm(alarm));
+});
+
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  await runReminderJob(() => TasklyReminders.handleNotificationClick(notificationId));
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") {
+    return;
+  }
+
+  if (changes[TasklyI18n.STORAGE_KEY]) {
+    createContextMenus();
+  }
+
+  if (changes[TasklyStore.STORAGE_KEY]) {
+    runReminderJob(() => TasklyReminders.syncReminders({ notifyMissed: false }));
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || message.type !== TasklyStore.REMINDER_SYNC_MESSAGE) {
+    return false;
+  }
+
+  TasklyReminders.syncReminders({ notifyMissed: true })
+    .then(() => sendResponse({ ok: true }))
+    .catch((error) => {
+      console.error("Gagal sync reminder Taskly:", error);
+      sendResponse({ ok: false, message: error && error.message ? error.message : "Sync gagal." });
     });
 
-    chrome.contextMenus.create({
-      id: MENU_LINK,
-      title: "Tambahkan link ke Taskly",
-      contexts: ["link"]
-    });
-
-    chrome.contextMenus.create({
-      id: MENU_PAGE,
-      title: "Simpan halaman ini ke Taskly",
-      contexts: ["page"]
-    });
-  });
+  return true;
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -41,6 +73,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         pageTitle,
         priority: TasklyStore.PRIORITY.MEDIUM
       });
+      await syncRemindersAfterTaskChange();
       return;
     }
 
@@ -53,6 +86,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         pageTitle,
         priority: TasklyStore.PRIORITY.MEDIUM
       });
+      await syncRemindersAfterTaskChange();
       return;
     }
 
@@ -66,6 +100,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         usePageTitleAsTitle: false,
         priority: TasklyStore.PRIORITY.MEDIUM
       });
+      await syncRemindersAfterTaskChange();
     }
   } catch (error) {
     console.error("Gagal menyimpan task Taskly:", error);
@@ -85,6 +120,45 @@ function getContextMenuCapture(info, tab) {
     };
 
     sendMessageWithContentScript(tab.id, message).then(resolve);
+  });
+}
+
+async function syncRemindersAfterTaskChange() {
+  await TasklyReminders.syncReminders({ notifyMissed: true });
+}
+
+async function runReminderJob(job) {
+  try {
+    await job();
+  } catch (error) {
+    console.error("Gagal menjalankan reminder Taskly:", error);
+  }
+}
+
+async function createContextMenus() {
+  await TasklyI18n.loadLanguage();
+  return new Promise((resolve) => {
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: MENU_SELECTED_TEXT,
+        title: TasklyI18n.t("contextAddText"),
+        contexts: ["selection"]
+      });
+
+      chrome.contextMenus.create({
+        id: MENU_LINK,
+        title: TasklyI18n.t("contextAddLink"),
+        contexts: ["link"]
+      });
+
+      chrome.contextMenus.create({
+        id: MENU_PAGE,
+        title: TasklyI18n.t("contextAddPage"),
+        contexts: ["page"]
+      });
+
+      resolve();
+    });
   });
 }
 

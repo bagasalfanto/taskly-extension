@@ -1,6 +1,7 @@
 (function () {
   const STORAGE_KEY = "taskly.tasks";
   const LEGACY_STORAGE_KEY = "rnotes.tasks";
+  const REMINDER_SYNC_MESSAGE = "TASKLY_SYNC_REMINDERS";
   const STATUS = {
     TODO: "todo",
     PROGRESS: "progress",
@@ -129,7 +130,7 @@
 
   function titleFromUrl(value) {
     if (!isHttpUrl(value)) {
-      return "Task baru";
+      return getI18nText("newTask", "Task baru");
     }
 
     const url = new URL(value);
@@ -167,7 +168,7 @@
   function titleFromDomain(domain) {
     const brand = getDomainBrand(`https://${domain || ""}`);
     if (!brand) {
-      return "Task baru";
+      return getI18nText("newTask", "Task baru");
     }
 
     return brand
@@ -211,7 +212,17 @@
   }
 
   function getStatusLabel(status) {
-    return STATUS_LABELS[normalizeStatus(status)] || STATUS_LABELS[STATUS.TODO];
+    const normalizedStatus = normalizeStatus(status);
+    const labels = {
+      [STATUS.TODO]: "statusTodo",
+      [STATUS.PROGRESS]: "statusProgress",
+      [STATUS.DONE]: "statusDone"
+    };
+    return getI18nText(labels[normalizedStatus], STATUS_LABELS[normalizedStatus] || STATUS_LABELS[STATUS.TODO]);
+  }
+
+  function getI18nText(key, fallback) {
+    return globalThis.TasklyI18n ? TasklyI18n.t(key) : fallback;
   }
 
   function normalizeTags(tags) {
@@ -225,9 +236,89 @@
       .filter(Boolean);
   }
 
+  function normalizeDueDate(value) {
+    const text = normalizeText(value);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (!match) {
+      return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return null;
+    }
+
+    return text;
+  }
+
+  function normalizeDueTime(value) {
+    const text = normalizeText(value);
+    const match = /^(\d{1,2}):([0-5]\d)(?::[0-5]\d)?$/.exec(text);
+    if (!match) {
+      return null;
+    }
+
+    const hour = Number(match[1]);
+    if (hour < 0 || hour > 23) {
+      return null;
+    }
+
+    return `${String(hour).padStart(2, "0")}:${match[2]}`;
+  }
+
+  function getReminderAt(dueDate, dueTime) {
+    const normalizedDate = normalizeDueDate(dueDate);
+    const normalizedTime = normalizeDueTime(dueTime);
+    if (!normalizedDate || !normalizedTime) {
+      return null;
+    }
+
+    const [year, month, day] = normalizedDate.split("-").map(Number);
+    const [hour, minute] = normalizedTime.split(":").map(Number);
+    const date = new Date(year, month - 1, day, hour, minute, 0, 0);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date.toISOString();
+  }
+
+  function formatDueLabel(task) {
+    const dueDate = normalizeDueDate(task && task.dueDate);
+    if (!dueDate) {
+      return "";
+    }
+
+    const dueTime = normalizeDueTime(task && task.dueTime);
+    return dueTime ? `${dueDate} ${dueTime}` : dueDate;
+  }
+
+  function isTaskReminderOverdue(task, now = new Date()) {
+    if (!task || normalizeStatus(task.status) === STATUS.DONE) {
+      return false;
+    }
+
+    const reminderAt = normalizeText(task.reminderAt);
+    if (!reminderAt) {
+      return false;
+    }
+
+    const dueTime = Date.parse(reminderAt);
+    const nowTime = now instanceof Date ? now.getTime() : Date.parse(now);
+    return Number.isFinite(dueTime) && Number.isFinite(nowTime) && dueTime <= nowTime;
+  }
+
   const api = {
     STORAGE_KEY,
     LEGACY_STORAGE_KEY,
+    REMINDER_SYNC_MESSAGE,
     STATUS,
     STATUS_LABELS,
     PRIORITY,
@@ -242,6 +333,11 @@
     normalizePriority,
     normalizeStatus,
     normalizeTags,
+    normalizeDueDate,
+    normalizeDueTime,
+    getReminderAt,
+    formatDueLabel,
+    isTaskReminderOverdue,
     getStatusLabel
   };
 
