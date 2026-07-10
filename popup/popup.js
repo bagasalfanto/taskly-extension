@@ -1,6 +1,7 @@
 const titleInput = document.querySelector("#titleInput");
 const notesInput = document.querySelector("#notesInput");
 const dueDateInput = document.querySelector("#dueDateInput");
+const dueTimeInput = document.querySelector("#dueTimeInput");
 const priorityInput = document.querySelector("#priorityInput");
 const taskForm = document.querySelector("#taskForm");
 const taskList = document.querySelector("#taskList");
@@ -9,6 +10,7 @@ const taskCount = document.querySelector("#taskCount");
 const message = document.querySelector("#message");
 const sourceLabel = document.querySelector("#sourceLabel");
 const dashboardButton = document.querySelector("#dashboardButton");
+const languageSelect = document.querySelector("#languageSelect");
 
 let activeSource = {
   url: null,
@@ -18,6 +20,8 @@ let activeSource = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await TasklyI18n.applyDocument();
+  setupLanguageSelect();
   titleInput.focus();
   await loadActiveSource();
   await renderTasks();
@@ -29,7 +33,7 @@ taskForm.addEventListener("submit", async (event) => {
 
   const title = TasklyStore.normalizeText(titleInput.value) || activeSource.suggestedTitle;
   if (!title) {
-    setMessage("Judul task wajib diisi.", true);
+    setMessage(TasklyI18n.t("titleRequired"), true);
     titleInput.focus();
     return;
   }
@@ -39,6 +43,7 @@ taskForm.addEventListener("submit", async (event) => {
       title,
       notes: notesInput.value,
       dueDate: dueDateInput.value || null,
+      dueTime: dueTimeInput.value || null,
       priority: priorityInput.value,
       url: activeSource.url,
       pageTitle: activeSource.pageTitle
@@ -47,11 +52,12 @@ taskForm.addEventListener("submit", async (event) => {
     taskForm.reset();
     priorityInput.value = "medium";
     titleInput.focus();
-    setMessage("Task tersimpan.");
+    setMessage(TasklyI18n.t("taskSaved"));
+    await syncReminders();
     await renderTasks();
   } catch (error) {
     console.error(error);
-    setMessage("Gagal menyimpan task.", true);
+    setMessage(TasklyI18n.t("taskSaveFailed"), true);
   }
 });
 
@@ -62,7 +68,7 @@ dashboardButton.addEventListener("click", () => {
 async function loadActiveSource() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !TasklyStore.isHttpUrl(tab.url)) {
-    sourceLabel.textContent = "Halaman ini tidak bisa dijadikan source.";
+    sourceLabel.textContent = TasklyI18n.t("sourceUnavailable");
     return;
   }
 
@@ -79,8 +85,8 @@ async function loadActiveSource() {
   if (suggestedTitle && !titleInput.value) {
     titleInput.value = suggestedTitle;
   }
-  titleInput.placeholder = suggestedTitle || "Tulis task cepat...";
-  sourceLabel.textContent = `Source: ${activeSource.domain}`;
+  titleInput.placeholder = suggestedTitle || TasklyI18n.t("taskPlaceholder");
+  sourceLabel.textContent = TasklyI18n.t("sourceLabel", { domain: activeSource.domain });
 }
 
 function getPageContext(tabId) {
@@ -125,12 +131,12 @@ async function renderTasks() {
   const activeTasks = tasks.filter((task) => task.status !== TasklyStore.STATUS.DONE).slice(0, 8);
 
   taskList.textContent = "";
-  taskCount.textContent = `${activeTasks.length} task`;
+  taskCount.textContent = TasklyI18n.t("taskCount", { count: activeTasks.length });
 
   if (!activeTasks.length) {
     const empty = document.createElement("p");
     empty.className = "task-empty";
-    empty.textContent = "Belum ada task aktif.";
+    empty.textContent = TasklyI18n.t("noActiveTasks");
     taskList.append(empty);
     return;
   }
@@ -139,9 +145,12 @@ async function renderTasks() {
     const node = taskTemplate.content.firstElementChild.cloneNode(true);
     node.querySelector("h3").textContent = task.title;
     node.querySelector(".task-meta").textContent = getMeta(task);
+    node.classList.toggle("is-overdue", TasklyStore.isTaskReminderOverdue(task));
+    translateTaskNode(node);
 
     node.querySelector(".done-button").addEventListener("click", async () => {
       await TasklyStore.markDone(task.id);
+      await syncReminders();
       await renderTasks();
     });
 
@@ -155,6 +164,7 @@ async function renderTasks() {
 
     node.querySelector(".delete-button").addEventListener("click", async () => {
       await TasklyStore.deleteTask(task.id);
+      await syncReminders();
       await renderTasks();
     });
 
@@ -166,12 +176,58 @@ function getMeta(task) {
   const parts = [];
   if (task.status) parts.push(TasklyStore.getStatusLabel(task.status));
   if (task.domain) parts.push(task.domain);
-  if (task.priority) parts.push(task.priority);
-  if (task.dueDate) parts.push(`due ${task.dueDate}`);
-  return parts.join(" - ") || "Task manual";
+  if (task.priority) parts.push(getPriorityLabel(task.priority));
+  if (task.dueDate) parts.push(TasklyI18n.t("duePrefix", { value: TasklyStore.formatDueLabel(task) }));
+  if (TasklyStore.isTaskReminderOverdue(task)) parts.push(TasklyI18n.t("overdue"));
+  return parts.join(" - ") || TasklyI18n.t("taskManual");
 }
 
 function setMessage(text, isError = false) {
   message.textContent = text;
   message.classList.toggle("error", isError);
+}
+
+function syncReminders() {
+  return new Promise((resolve) => {
+    if (!globalThis.chrome || !chrome.runtime || !chrome.runtime.sendMessage) {
+      resolve();
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: TasklyStore.REMINDER_SYNC_MESSAGE }, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+}
+
+function setupLanguageSelect() {
+  if (!languageSelect) return;
+  languageSelect.value = TasklyI18n.getLanguage();
+  languageSelect.addEventListener("change", async () => {
+    await TasklyI18n.setLanguage(languageSelect.value);
+    await TasklyI18n.applyDocument();
+    if (globalThis.TasklyTheme) TasklyTheme.refresh();
+    setMessage("");
+    await loadActiveSource();
+    await renderTasks();
+  });
+}
+
+function translateTaskNode(node) {
+  const doneButton = node.querySelector(".done-button");
+  doneButton.textContent = TasklyI18n.t("ok");
+  doneButton.title = TasklyI18n.t("markDone");
+  doneButton.setAttribute("aria-label", TasklyI18n.t("markDone"));
+  node.querySelector(".open-button").textContent = TasklyI18n.t("open");
+  node.querySelector(".delete-button").textContent = TasklyI18n.t("delete");
+}
+
+function getPriorityLabel(priority) {
+  const labels = {
+    low: "priorityLow",
+    medium: "priorityMedium",
+    high: "priorityHigh"
+  };
+  return TasklyI18n.t(labels[priority] || "priorityMedium");
 }

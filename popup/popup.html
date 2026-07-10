@@ -12,45 +12,67 @@
       <header class="topbar">
         <div>
           <h1>Taskly</h1>
-          <p id="sourceLabel">Siap menangkap task.</p>
+          <p id="sourceLabel" data-i18n="sourceReady">Siap menangkap task.</p>
         </div>
-        <button id="dashboardButton" class="icon-button" type="button" title="Buka dashboard" aria-label="Buka dashboard">Dashboard</button>
+        <div class="topbar-actions">
+          <label class="language-field">
+            <span data-i18n="language">Bahasa</span>
+            <select
+              id="languageSelect"
+              class="language-select"
+              data-language-select
+              data-i18n-title="language"
+              data-i18n-aria-label="language"
+            >
+              <option value="id" data-i18n="languageId">Indonesia</option>
+              <option value="en" data-i18n="languageEn">English</option>
+            </select>
+          </label>
+          <button id="dashboardButton" class="icon-button" type="button" data-i18n-title="openDashboard" data-i18n-aria-label="openDashboard" data-i18n="dashboard">Dashboard</button>
+        </div>
       </header>
 
       <form id="taskForm" class="capture-form">
         <label class="field">
-          <span>Task</span>
-          <input id="titleInput" type="text" maxlength="120" placeholder="Tulis task cepat..." autocomplete="off">
+          <span data-i18n="task">Task</span>
+          <input id="titleInput" type="text" maxlength="120" data-i18n-placeholder="taskPlaceholder" placeholder="Tulis task cepat..." autocomplete="off">
         </label>
 
         <label class="field">
-          <span>Catatan</span>
-          <textarea id="notesInput" rows="2" placeholder="Opsional"></textarea>
+          <span data-i18n="notes">Catatan</span>
+          <textarea id="notesInput" rows="2" data-i18n-placeholder="notesPlaceholder" placeholder="Opsional"></textarea>
         </label>
 
         <div class="form-grid">
           <label class="field">
-            <span>Deadline</span>
+            <span data-i18n="deadline">Deadline</span>
             <input id="dueDateInput" type="date">
+            <small data-i18n="dateHelp">contoh 2026-05-28</small>
           </label>
 
           <label class="field">
-            <span>Prioritas</span>
+            <span data-i18n="reminderTime">Jam Reminder</span>
+            <input id="dueTimeInput" type="time">
+            <small data-i18n="timeHelp">Format 24 jam, contoh 14:30</small>
+          </label>
+
+          <label class="field priority-field">
+            <span data-i18n="priority">Prioritas</span>
             <select id="priorityInput">
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="low">Low</option>
+              <option value="medium" data-i18n="priorityMedium">Medium</option>
+              <option value="high" data-i18n="priorityHigh">High</option>
+              <option value="low" data-i18n="priorityLow">Low</option>
             </select>
           </label>
         </div>
 
-        <button class="primary-button" type="submit">Simpan Task</button>
+        <button class="primary-button" type="submit" data-i18n="saveTask">Simpan Task</button>
         <p id="message" class="message" role="status"></p>
       </form>
 
       <section class="task-section" aria-labelledby="activeTitle">
         <div class="section-head">
-          <h2 id="activeTitle">Task Aktif</h2>
+          <h2 id="activeTitle" data-i18n="activeTasks">Task Aktif</h2>
           <span id="taskCount">0 task</span>
         </div>
         <div id="taskList" class="task-list"></div>
@@ -60,20 +82,21 @@
     <template id="taskTemplate">
       <article class="task-item">
         <div class="task-main">
-          <button class="done-button" type="button" title="Tandai selesai" aria-label="Tandai selesai">OK</button>
+          <button class="done-button" type="button" data-i18n-title="markDone" data-i18n-aria-label="markDone" data-i18n="ok">OK</button>
           <div class="task-copy">
             <h3></h3>
             <p class="task-meta"></p>
           </div>
         </div>
         <div class="task-actions">
-          <button class="open-button" type="button">Buka</button>
-          <button class="delete-button" type="button">Hapus</button>
+          <button class="open-button" type="button" data-i18n="open">Buka</button>
+          <button class="delete-button" type="button" data-i18n="delete">Hapus</button>
         </div>
       </article>
     </template>
 
     <script src="../scripts/rnotes-utils.js"></script>
+    <script src="../scripts/taskly-i18n.js"></script>
     <script src="../scripts/rnotes-store.js"></script>
     <script src="../scripts/rnotes-export.js"></script>
     <script src="../scripts/rnotes-pdf-export.js"></script>
