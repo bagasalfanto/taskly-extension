@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Taskly",
-  "description": "Menyimpan tugas, catatan, dan link langsung dari browser.",
+  "name": "__MSG_extension_name__",
+  "description": "__MSG_extension_description__",
   "version": "0.1.0",
+  "default_locale": "id",
   "permissions": [
+    "alarms",
+    "notifications",
     "storage",
     "tabs",
     "contextMenus",
@@ -34,7 +37,7 @@
     }
   ],
   "action": {
-    "default_title": "Taskly",
+    "default_title": "__MSG_extension_action_title__",
     "default_icon": {
       "16": "assets/favicon.svg",
       "32": "assets/favicon.svg",
