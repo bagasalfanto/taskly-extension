@@ -13,6 +13,7 @@ const detailNotesInput = document.querySelector("#detailNotesInput");
 const detailStatusInput = document.querySelector("#detailStatusInput");
 const detailPriorityInput = document.querySelector("#detailPriorityInput");
 const detailDueDateInput = document.querySelector("#detailDueDateInput");
+const detailDueTimeInput = document.querySelector("#detailDueTimeInput");
 const detailTagsInput = document.querySelector("#detailTagsInput");
 const sourceLink = document.querySelector("#sourceLink");
 const selectedTextPreview = document.querySelector("#selectedTextPreview");
@@ -23,11 +24,15 @@ const exportMarkdownButton = document.querySelector("#exportMarkdownButton");
 const exportCsvButton = document.querySelector("#exportCsvButton");
 const exportPdfButton = document.querySelector("#exportPdfButton");
 const exportJsonButton = document.querySelector("#exportJsonButton");
+const languageSelect = document.querySelector("#languageSelect");
 
 let allTasks = [];
 let selectedTaskId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await TasklyI18n.applyDocument();
+  if (globalThis.TasklyTheme) TasklyTheme.refresh();
+  setupLanguageSelect();
   await refresh();
 });
 
@@ -38,13 +43,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 detailForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!selectedTaskId) {
-    setDetailMessage("Pilih task dulu.", true);
+    setDetailMessage(TasklyI18n.t("chooseTaskFirst"), true);
     return;
   }
 
   const title = TasklyStore.normalizeText(detailTitleInput.value);
   if (!title) {
-    setDetailMessage("Judul task wajib diisi.", true);
+    setDetailMessage(TasklyI18n.t("titleRequired"), true);
     detailTitleInput.focus();
     return;
   }
@@ -55,30 +60,34 @@ detailForm.addEventListener("submit", async (event) => {
     status: detailStatusInput.value,
     priority: detailPriorityInput.value,
     dueDate: detailDueDateInput.value || null,
+    dueTime: detailDueTimeInput.value || null,
     tags: detailTagsInput.value
   });
 
-  setDetailMessage("Perubahan tersimpan.");
+  setDetailMessage(TasklyI18n.t("changesSaved"));
+  await syncReminders();
   await refresh(selectedTaskId);
 });
 
 markDoneButton.addEventListener("click", async () => {
   if (!selectedTaskId) return;
   await TasklyStore.markDone(selectedTaskId);
-  setDetailMessage("Task ditandai selesai.");
+  setDetailMessage(TasklyI18n.t("taskMarkedDone"));
+  await syncReminders();
   await refresh(selectedTaskId);
 });
 
 deleteDetailButton.addEventListener("click", async () => {
   if (!selectedTaskId) return;
   const task = allTasks.find((item) => item.id === selectedTaskId);
-  if (!task || !confirm(`Hapus task "${task.title}"?`)) {
+  if (!task || !confirm(TasklyI18n.t("deleteTaskConfirm", { title: task.title }))) {
     return;
   }
 
   await TasklyStore.deleteTask(selectedTaskId);
   selectedTaskId = null;
-  setDetailMessage("Task dihapus.");
+  setDetailMessage(TasklyI18n.t("taskDeleted"));
+  await syncReminders();
   await refresh();
 });
 
@@ -128,7 +137,7 @@ function renderDomainFilter() {
   domainFilter.textContent = "";
   const allOption = document.createElement("option");
   allOption.value = "all";
-  allOption.textContent = "Semua domain";
+  allOption.textContent = TasklyI18n.t("allDomains");
   domainFilter.append(allOption);
 
   domains.forEach((domain) => {
@@ -144,12 +153,12 @@ function renderDomainFilter() {
 function renderTaskList() {
   const visibleTasks = getFilteredTasks();
   taskList.textContent = "";
-  resultCount.textContent = `${visibleTasks.length} item`;
+  resultCount.textContent = TasklyI18n.t("itemCount", { count: visibleTasks.length });
 
   if (!visibleTasks.length) {
     const empty = document.createElement("p");
     empty.className = "dashboard-task-empty";
-    empty.textContent = "Tidak ada task yang cocok.";
+    empty.textContent = TasklyI18n.t("noMatchingTasks");
     taskList.append(empty);
     return;
   }
@@ -157,6 +166,7 @@ function renderTaskList() {
   visibleTasks.forEach((task) => {
     const node = taskTemplate.content.firstElementChild.cloneNode(true);
     node.classList.toggle("active", task.id === selectedTaskId);
+    node.classList.toggle("is-overdue", TasklyStore.isTaskReminderOverdue(task));
     node.querySelector("h3").textContent = task.title;
     node.querySelector(".task-meta").textContent = getMeta(task);
 
@@ -187,10 +197,11 @@ function renderDetail() {
     detailStatusInput.value = TasklyStore.STATUS.TODO;
     detailPriorityInput.value = "medium";
     detailDueDateInput.value = "";
+    detailDueTimeInput.value = "";
     detailTagsInput.value = "";
     sourceLink.removeAttribute("href");
-    sourceLink.textContent = "Tidak ada source";
-    selectedTextPreview.textContent = "Belum ada task yang dipilih.";
+    sourceLink.textContent = TasklyI18n.t("noSource");
+    selectedTextPreview.textContent = TasklyI18n.t("noTaskSelected");
     return;
   }
 
@@ -200,6 +211,7 @@ function renderDetail() {
   detailStatusInput.value = task.status;
   detailPriorityInput.value = task.priority;
   detailDueDateInput.value = task.dueDate || "";
+  detailDueTimeInput.value = task.dueTime || "";
   detailTagsInput.value = (task.tags || []).join(", ");
 
   if (task.url) {
@@ -207,10 +219,10 @@ function renderDetail() {
     sourceLink.textContent = task.url;
   } else {
     sourceLink.removeAttribute("href");
-    sourceLink.textContent = "Tidak ada source";
+    sourceLink.textContent = TasklyI18n.t("noSource");
   }
 
-  selectedTextPreview.textContent = task.selectedText || "Tidak ada selected text.";
+  selectedTextPreview.textContent = task.selectedText || TasklyI18n.t("noSelectedText");
 }
 
 function selectTask(id) {
@@ -232,6 +244,9 @@ function getFilteredTasks() {
       task.url,
       task.pageTitle,
       task.domain,
+      task.dueDate,
+      task.dueTime,
+      task.reminderAt,
       task.selectedText,
       ...(task.tags || [])
     ]
@@ -246,10 +261,11 @@ function getFilteredTasks() {
 function getMeta(task) {
   const parts = [];
   if (task.domain) parts.push(task.domain);
-  if (task.priority) parts.push(task.priority);
-  if (task.dueDate) parts.push(`due ${task.dueDate}`);
+  if (task.priority) parts.push(getPriorityLabel(task.priority));
+  if (task.dueDate) parts.push(TasklyI18n.t("duePrefix", { value: TasklyStore.formatDueLabel(task) }));
+  if (TasklyStore.isTaskReminderOverdue(task)) parts.push(TasklyI18n.t("overdue"));
   if (task.tags && task.tags.length) parts.push(task.tags.join(", "));
-  return parts.join(" - ") || "Task manual";
+  return parts.join(" - ") || TasklyI18n.t("taskManual");
 }
 
 function setDetailMessage(text, isError = false) {
@@ -267,4 +283,39 @@ function downloadFile(filename, content, type) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+function syncReminders() {
+  return new Promise((resolve) => {
+    if (!globalThis.chrome || !chrome.runtime || !chrome.runtime.sendMessage) {
+      resolve();
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: TasklyStore.REMINDER_SYNC_MESSAGE }, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+}
+
+function setupLanguageSelect() {
+  if (!languageSelect) return;
+  languageSelect.value = TasklyI18n.getLanguage();
+  languageSelect.addEventListener("change", async () => {
+    await TasklyI18n.setLanguage(languageSelect.value);
+    await TasklyI18n.applyDocument();
+    if (globalThis.TasklyTheme) TasklyTheme.refresh();
+    setDetailMessage("");
+    await refresh(selectedTaskId);
+  });
+}
+
+function getPriorityLabel(priority) {
+  const labels = {
+    low: "priorityLow",
+    medium: "priorityMedium",
+    high: "priorityHigh"
+  };
+  return TasklyI18n.t(labels[priority] || "priorityMedium");
 }

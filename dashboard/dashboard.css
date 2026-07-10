@@ -179,7 +179,24 @@ p {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: flex-end;
   gap: 12px;
+}
+
+.language-field {
+  display: grid;
+  gap: 4px;
+  min-width: 132px;
+}
+
+.language-field span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.language-select {
+  height: 40px;
 }
 
 .header-actions button,
@@ -344,6 +361,11 @@ textarea:focus {
   background: var(--bg-selected);
 }
 
+.dashboard-task-item.is-overdue {
+  border-left: 4px solid var(--danger);
+  padding-left: 16px;
+}
+
 .dashboard-task-item h3 {
   overflow-wrap: anywhere;
   font-size: 15px;
@@ -356,6 +378,10 @@ textarea:focus {
   color: var(--text-muted);
   font-size: 13px;
   line-height: 1.4;
+}
+
+.dashboard-task-item.is-overdue .task-meta {
+  color: var(--danger);
 }
 
 .status-pill {
@@ -404,6 +430,12 @@ textarea:focus {
   color: var(--text-main);
   font-size: 13px;
   font-weight: 600;
+}
+
+.field small {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .form-grid {
@@ -526,6 +558,10 @@ textarea:focus {
     grid-template-columns: 1fr 1fr;
     width: 100%;
     gap: 8px;
+  }
+
+  .language-field {
+    min-width: 0;
   }
 
   .header-actions button,

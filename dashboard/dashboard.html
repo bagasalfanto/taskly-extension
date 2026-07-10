@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Taskly Dashboard</title>
+    <title data-i18n="dashboardTitle">Taskly Dashboard</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="dashboard.css" />
   </head>
@@ -12,70 +12,90 @@
       <header class="dashboard-header">
         <div>
           <h1>Taskly</h1>
-          <p>Kelola task, catatan, dan link yang kamu tangkap dari browser.</p>
+          <p data-i18n="dashboardSubtitle">Kelola task, catatan, dan link yang kamu tangkap dari browser.</p>
         </div>
         <div class="header-actions">
+          <label class="language-field">
+            <span data-i18n="language">Bahasa</span>
+            <select
+              id="languageSelect"
+              class="language-select"
+              data-language-select
+              data-i18n-title="language"
+              data-i18n-aria-label="language"
+            >
+              <option value="id" data-i18n="languageId">Indonesia</option>
+              <option value="en" data-i18n="languageEn">English</option>
+            </select>
+          </label>
           <button id="themeToggle" type="button" aria-label="Aktifkan dark mode">
             Dark
           </button>
-          <button id="exportMarkdownButton" type="button">Export MD</button>
-          <button id="exportCsvButton" type="button">Export CSV</button>
-          <button id="exportPdfButton" type="button">Export PDF</button>
-          <button id="exportJsonButton" type="button">Export JSON</button>
+          <button id="exportMarkdownButton" type="button" data-i18n="exportMd">Export MD</button>
+          <button id="exportCsvButton" type="button" data-i18n="exportCsv">Export CSV</button>
+          <button id="exportPdfButton" type="button" data-i18n="exportPdf">Export PDF</button>
+          <button id="exportJsonButton" type="button" data-i18n="exportJson">Export JSON</button>
         </div>
       </header>
 
-      <section class="toolbar" aria-label="Filter task">
+      <section class="toolbar" aria-label="Filter task" data-i18n-aria-label="filterTasks">
         <input
           id="searchInput"
           type="search"
+          data-i18n-placeholder="searchPlaceholder"
           placeholder="Cari task, domain, catatan, atau URL..."
         />
         <select
           id="statusFilter"
           aria-label="Filter berdasarkan status"
           title="Filter berdasarkan status"
+          data-i18n-aria-label="filterStatus"
+          data-i18n-title="filterStatus"
         >
-          <option value="all">Semua status</option>
-          <option value="todo">To Do</option>
-          <option value="progress">On Progress</option>
-          <option value="done">Done</option>
+          <option value="all" data-i18n="allStatuses">Semua status</option>
+          <option value="todo" data-i18n="statusTodo">To Do</option>
+          <option value="progress" data-i18n="statusProgress">On Progress</option>
+          <option value="done" data-i18n="statusDone">Done</option>
         </select>
         <select
           id="priorityFilter"
           aria-label="Filter berdasarkan prioritas"
           title="Filter berdasarkan prioritas"
+          data-i18n-aria-label="filterPriority"
+          data-i18n-title="filterPriority"
         >
-          <option value="all">Semua prioritas</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="all" data-i18n="allPriorities">Semua prioritas</option>
+          <option value="high" data-i18n="priorityHigh">High</option>
+          <option value="medium" data-i18n="priorityMedium">Medium</option>
+          <option value="low" data-i18n="priorityLow">Low</option>
         </select>
         <select
           id="domainFilter"
           aria-label="Filter berdasarkan domain"
           title="Filter berdasarkan domain"
+          data-i18n-aria-label="filterDomain"
+          data-i18n-title="filterDomain"
         >
-          <option value="all">Semua domain</option>
+          <option value="all" data-i18n="allDomains">Semua domain</option>
         </select>
       </section>
 
       <section class="content-grid">
         <section class="task-panel" aria-labelledby="taskListTitle">
           <div class="panel-head">
-            <h2 id="taskListTitle">Task</h2>
+            <h2 id="taskListTitle" data-i18n="taskListTitle">Task</h2>
             <span id="resultCount">0 item</span>
           </div>
           <div id="dashboardTaskList" class="dashboard-task-list"></div>
         </section>
 
         <aside class="detail-panel" aria-labelledby="detailTitle">
-          <h2 id="detailTitle">Detail</h2>
+          <h2 id="detailTitle" data-i18n="detail">Detail</h2>
           <form id="detailForm" class="detail-form">
             <input id="taskIdInput" type="hidden" />
 
             <label class="field">
-              <span>Judul</span>
+              <span data-i18n="title">Judul</span>
               <input
                 id="detailTitleInput"
                 type="text"
@@ -85,46 +105,56 @@
             </label>
 
             <label class="field">
-              <span>Catatan</span>
+              <span data-i18n="notes">Catatan</span>
               <textarea id="detailNotesInput" rows="5"></textarea>
             </label>
 
             <div class="form-grid">
               <label class="field">
-                <span>Status</span>
+                <span data-i18n="status">Status</span>
                 <select id="detailStatusInput">
-                  <option value="todo">To Do</option>
-                  <option value="progress">On Progress</option>
-                  <option value="done">Done</option>
+                  <option value="todo" data-i18n="statusTodo">To Do</option>
+                  <option value="progress" data-i18n="statusProgress">On Progress</option>
+                  <option value="done" data-i18n="statusDone">Done</option>
                 </select>
               </label>
 
               <label class="field">
-                <span>Prioritas</span>
+                <span data-i18n="priority">Prioritas</span>
                 <select id="detailPriorityInput">
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="low">Low</option>
+                  <option value="medium" data-i18n="priorityMedium">Medium</option>
+                  <option value="high" data-i18n="priorityHigh">High</option>
+                  <option value="low" data-i18n="priorityLow">Low</option>
                 </select>
               </label>
             </div>
 
-            <label class="field">
-              <span>Deadline</span>
-              <input id="detailDueDateInput" type="date" />
-            </label>
+            <div class="form-grid">
+              <label class="field">
+                <span data-i18n="deadline">Deadline</span>
+                <input id="detailDueDateInput" type="date" />
+                <small data-i18n="dateHelp">Format tanggal, contoh 2026-05-28</small>
+              </label>
+
+              <label class="field">
+                <span data-i18n="reminderTime">Jam Reminder</span>
+                <input id="detailDueTimeInput" type="time" />
+                <small data-i18n="timeHelp">Format 24 jam, contoh 14:30</small>
+              </label>
+            </div>
 
             <label class="field">
-              <span>Tags</span>
+              <span data-i18n="tags">Tags</span>
               <input
                 id="detailTagsInput"
                 type="text"
+                data-i18n-placeholder="tagsPlaceholder"
                 placeholder="study, follow up, idea"
               />
             </label>
 
             <div class="source-box">
-              <span>Source</span>
+              <span data-i18n="source">Source</span>
               <a id="sourceLink" href="#" target="_blank" rel="noreferrer"
                 >Tidak ada source</a
               >
@@ -132,12 +162,13 @@
             </div>
 
             <div class="detail-actions">
-              <button class="primary-button" type="submit">Simpan</button>
-              <button id="markDoneButton" type="button">Done</button>
+              <button class="primary-button" type="submit" data-i18n="save">Simpan</button>
+              <button id="markDoneButton" type="button" data-i18n="statusDone">Done</button>
               <button
                 id="deleteDetailButton"
                 class="danger-button"
                 type="button"
+                data-i18n="delete"
               >
                 Hapus
               </button>
@@ -160,6 +191,7 @@
     </template>
 
     <script src="../scripts/rnotes-utils.js"></script>
+    <script src="../scripts/taskly-i18n.js"></script>
     <script src="../scripts/rnotes-store.js"></script>
     <script src="../scripts/rnotes-export.js"></script>
     <script src="../scripts/rnotes-pdf-export.js"></script>
