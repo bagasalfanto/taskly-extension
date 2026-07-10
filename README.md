@@ -104,6 +104,7 @@ Lalu klik tombol reload pada card `Taskly` agar perubahan terbaru aktif di brows
 - Mengambil judul halaman yang relevan, misalnya judul video YouTube atau nama kuis di LMS jika tersedia dari halaman.
 - Mengelola task dalam status `To Do`, `On Progress`, dan `Done`.
 - Mengatur priority, due date, notes, dan tag.
+- Mengatur jam reminder deadline dengan notifikasi browser dan badge overdue.
 - Membuka kembali sumber task dari URL yang tersimpan.
 - Export data ke Markdown, CSV, PDF, dan JSON.
 
@@ -152,6 +153,13 @@ Lalu klik tombol reload pada card `Taskly` agar perubahan terbaru aktif di brows
    - `Export JSON` untuk backup atau kebutuhan teknis.
 3. File export akan diunduh dengan nama `taskly-export`.
 
+### 6. Menggunakan reminder deadline
+
+1. Saat membuat atau mengedit task, isi `Deadline` dan `Jam Reminder`.
+2. Taskly akan mengirim notifikasi browser satu kali saat waktu reminder tiba. Pengecekan reminder berjalan otomatis sekitar setiap 1 menit, sehingga notifikasi bisa sedikit terlambat dari jam yang dipilih.
+3. Jika task belum selesai setelah waktu reminder lewat, badge icon Taskly menampilkan jumlah task overdue.
+4. Tandai task sebagai `Done` untuk menghapus task dari hitungan badge overdue.
+
 ## Browser yang Didukung
 
 Taskly menggunakan Manifest V3 dan API `chrome.*`, sehingga target utamanya adalah browser berbasis Chromium.
@@ -172,6 +180,8 @@ Project ini menggunakan MIT License. Detail lisensi tersedia di file `LICENSE`.
 
 Taskly meminta beberapa permission di `manifest.json`:
 
+- `alarms`: menjadwalkan reminder deadline.
+- `notifications`: menampilkan notifikasi browser saat reminder tiba.
 - `storage`: menyimpan data task secara lokal di browser.
 - `tabs`: membaca informasi tab aktif seperti URL dan judul.
 - `contextMenus`: membuat menu klik kanan untuk menyimpan teks, link, atau halaman.
