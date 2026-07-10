@@ -1,0 +1,11 @@
+{
+  "extension_name": {
+    "message": "Taskly"
+  },
+  "extension_description": {
+    "message": "Menyimpan tugas, catatan, dan link langsung dari browser."
+  },
+  "extension_action_title": {
+    "message": "Taskly"
+  }
+}

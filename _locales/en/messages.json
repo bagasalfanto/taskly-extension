@@ -1,0 +1,11 @@
+{
+  "extension_name": {
+    "message": "Taskly"
+  },
+  "extension_description": {
+    "message": "Save tasks, notes, and links directly from your browser."
+  },
+  "extension_action_title": {
+    "message": "Taskly"
+  }
+}
